@@ -7,7 +7,7 @@ pipeline {
     options {
         timestamps()
     }
-    triggers {pollSCM('*****')}
+    triggers { pollSCM('* * * * *') }
     stages {
         stage('Lint') {
             steps {

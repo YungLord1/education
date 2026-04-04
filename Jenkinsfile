@@ -10,19 +10,16 @@ pipeline {
     stages {
         stage('Lint') {
             steps {
-                withCredentials([string(credentialsId: 'SUDO_PASS', variable: 'SUDO_PASSWORD')]) {
-                    sh "echo ${SUDO_PASSWORD} | sudo -S apt update"
-                    sh "echo ${SUDO_PASSWORD} | sudo -S apt-get install python3-pip -y"
-                }
                 echo 'Running linter...'
-                sh 'pip install flake8'
-                sh 'flake8 .'
+                sh 'python -m venv venv'
+                sh './venv/bin/pip install flake8'
+                sh './venv/bin/flake8 .'
                 sleep 2
             }
         }
         stage('Test') {
             steps {
-                echo 'Running steps'
+                echo 'Running tests...'
                 sleep 3
             }
         }

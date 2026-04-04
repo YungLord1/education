@@ -10,9 +10,9 @@ pipeline {
     stages {
         stage('Lint') {
             steps {
-                withCredentials([string(credentialsId: 'SUDO_PASS')]) {
-                    sh "echo ${SUDO_PASS} | sudo -S apt update"
-                    sh "echo ${SUDO_PASS} | sudo -S apt-get install python3-pip -y"
+                withCredentials([string(credentialsId: 'SUDO_PASS', variable: 'SUDO_PASSWORD')]) {
+                    sh "echo ${SUDO_PASSWORD} | sudo -S apt update"
+                    sh "echo ${SUDO_PASSWORD} | sudo -S apt-get install python3-pip -y"
                 }
                 echo 'Running linter...'
                 sh 'pip install flake8'

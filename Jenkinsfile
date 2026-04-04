@@ -16,7 +16,7 @@ pipeline {
                 }
                 sh 'python3 -m venv venv'
                 sh './venv/bin/pip install flake8'
-                sh './venv/bin/flake8 .'
+                sh './venv/bin/flake8 . --exclude=venv,.git,__pycache__,.pytest_cache'
                 sleep 2
             }
         }

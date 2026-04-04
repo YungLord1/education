@@ -7,7 +7,7 @@ pipeline {
     options {
         timestamps()
     }
-    triggers { pollSCM('* * * * *') }
+    // triggers { pollSCM('* * * * *') }
     stages {
         stage('Lint') {
             steps {
@@ -22,7 +22,6 @@ pipeline {
                 echo 'Running steps'
                 sleep 3
             }
-        }
         stage('Build') {
             steps {
                 echo "Building Docker image ${IMAGE}..."

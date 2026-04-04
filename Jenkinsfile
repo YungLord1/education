@@ -7,11 +7,11 @@ pipeline {
     options {
         timestamps()
     }
-    // triggers { pollSCM('* * * * *') }
     stages {
         stage('Lint') {
             steps {
                 echo 'Running linter...'
+                sh 'apt install python3-pip -y'
                 sh 'pip install flake8'
                 sh 'flake8 .'
                 sleep 2

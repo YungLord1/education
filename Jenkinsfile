@@ -1,10 +1,55 @@
+#!groovy
 pipeline {
     agent any
+    environment {
+        IMAGE = "myapp:${env.BUILD_NUMBER}"
+    }
+    options {
+        timestamps()
+    }
+    triggers {pollSCM('*****')}
     stages {
-        stage('Hello') {
+        stage('Lint') {
             steps {
-                echo 'Hello world'
+                echo 'Running linter...'
+                sleep 2
             }
+        }
+        stage('Test'){
+            steps{
+                echo 'Running steps'
+                sleep 3
+            }
+        }
+        stage('Build'){
+            steps {
+                echo "Building Docker image ${IMAGE}..."
+                sleep 4
+            }
+        }
+        stage('Push'){
+            steps {
+                echo 'Pushing image to regisrty...'
+                sleep 2
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying to staging...'
+                sleep 2
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Cleanup: removing local image...'
+            sleep 1
+        }
+        success {
+            echo 'Pipeline finished successfully'
+        }
+        failure {
+            echo 'Pipeline failed'
         }
     }
 }

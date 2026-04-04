@@ -18,10 +18,11 @@ pipeline {
             }
         }
         stage('Test') {
-            steps 
+            steps {
                 echo 'Running steps'
                 sleep 3
             }
+        }
         stage('Build') {
             steps {
                 echo "Building Docker image ${IMAGE}..."

@@ -14,6 +14,7 @@ class CurrencyRate:
 
     # Интерфейс(абстрактный класс) для репо курсов валют
 
+
 class CurrencyRepository(ABC):
 
     # Получение курса конкретной валюты

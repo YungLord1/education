@@ -24,7 +24,7 @@ class GetCurrencyRateUseCase:
 
         # Приведение кода валют к капсу
         try:
-            return await self.repository.get_rate(currency_code.upper(), 
+            return await self.repository.get_rate(currency_code.upper(),
                                                   rate_date)
         except ValueError:
             return None

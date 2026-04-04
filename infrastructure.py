@@ -12,7 +12,8 @@ class CbrRepository(CurrencyRepository):
         self.base_url = base_url
 
     # получения курса на конкретную дату, даты нет - возвращаем сегодня
-    async def get_rate(self, currency_code: str, rate_date: Optional[date] = None
+    async def get_rate(self, currency_code: str,
+                       rate_date: Optional[date] = None
                        ) -> Optional[CurrencyRate]:
         url = self.base_url
         if rate_date:
@@ -27,7 +28,7 @@ class CbrRepository(CurrencyRepository):
 
                 if "Error in parameters" in resp.text:
                     return None
-                # Парсинг XML-ответов 
+                # Парсинг XML-ответов
                 root = ET.fromstring(resp.text)
 
                 # Преобразование ответа от API ЦБ РФ из XML

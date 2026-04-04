@@ -11,6 +11,9 @@ pipeline {
         stage('Lint') {
             steps {
                 echo 'Running linter...'
+                withCredentials([string(credentialsId: 'SUDO_PASS', variable: 'SUDO_PASSWORD')]) {
+                    sh "echo $SUDO_PASSWORD | sudo -S apt-get update && sudo -S apt-get install -y python3-venv"
+                }
                 sh 'python -m venv venv'
                 sh './venv/bin/pip install flake8'
                 sh './venv/bin/flake8 .'

@@ -46,7 +46,7 @@ pipeline {
             sleep 1
         }
         success {
-            echo 'Pipeline finished successfully'
+            echo 'Pipeline finished successfully, build by commit'
         }
         failure {
             echo 'Pipeline failed'

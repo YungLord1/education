@@ -8,27 +8,27 @@ from domain import CurrencyRate, CurrencyRepository
 
 class GetCurrencyRateUseCase:
     def __init__(self, repository: CurrencyRepository):
-        
+
         # Внедрение зависимости
         self.repository = repository
-    
+
     # Бизнес-логика получения валюты
     async def execute(self,
                       currency_code: str,
                       rate_date: Optional[date] = None
                       ) -> Optional[CurrencyRate]:
-        
+
         # Проверка, что код валюты из 3 символов
         if not currency_code or len(currency_code) != 3:
             return None
-        
+
         # Приведение кода валют к капсу
         try:
             return await self.repository.get_rate(currency_code.upper(), 
                                                   rate_date)
         except ValueError:
             return None
-    
+
     # Аналогично с получением всех валют, только без проверок
     async def get_all_rates(self, rate_date: Optional[date] =
                             None) -> List[CurrencyRate]:

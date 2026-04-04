@@ -15,6 +15,7 @@ cbr_url = os.getenv('CBR_URL', 'http://www.cbr.ru/scripts/XML_daily.asp')
 repository = CbrRepository(cbr_url)
 use_case = GetCurrencyRateUseCase(repository)
 
+
 # Создание ручки(эндпоинта) для получения общей информации
 @router.get('/info')
 async def info():
@@ -23,6 +24,7 @@ async def info():
         'service': os.getenv('SERVICE', SERVICE_NAME),
         'author': os.getenv('AUTHOR', 'i.chach')
     }
+
 
 # Создание ручки(эндпоинта) для получения курсов валют
 @router.get('/info/currency')
@@ -47,7 +49,7 @@ async def currency_rate(
     # Условие для поиска конкретной валюта и чуть ниже вывод,
     # если валюта не найдена
     rate = await use_case.execute(currency, rate_date)
-   
+
     if not rate:
         return {'data': {}, 'service': SERVICE_NAME}
 

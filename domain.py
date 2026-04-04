@@ -15,7 +15,7 @@ class CurrencyRate:
 
     # Интерфейс(абстрактный класс) для репо курсов валют
 class CurrencyRepository(ABC):
-    
+
     # Получение курса конкретной валюты
     @abstractmethod
     async def get_rate(

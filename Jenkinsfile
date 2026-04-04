@@ -12,22 +12,24 @@ pipeline {
         stage('Lint') {
             steps {
                 echo 'Running linter...'
+                sh 'pip install flake8'
+                sh 'flake8 .'
                 sleep 2
             }
         }
-        stage('Test'){
-            steps{
+        stage('Test') {
+            steps 
                 echo 'Running steps'
                 sleep 3
             }
         }
-        stage('Build'){
+        stage('Build') {
             steps {
                 echo "Building Docker image ${IMAGE}..."
                 sleep 4
             }
         }
-        stage('Push'){
+        stage('Push') {
             steps {
                 echo 'Pushing image to regisrty...'
                 sleep 2

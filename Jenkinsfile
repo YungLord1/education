@@ -38,29 +38,33 @@ pipeline {
             agent { label 'worker2' }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub_creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    script {
-                        def tag = "${USER}/${REPO_NAME}:${env.BUILD_NUMBER}"
-                        sh "echo $PASS | docker login -u $USER --password-stdin"
-                        sh 'docker system prune -f'
-                        sh "docker build -t ${tag} ."
-                        sh "docker push ${tag}"
-                        env.DEPLOY_TAG = tag
-                    }
-                }
+            script {
+                env.DEPLOY_TAG = "${USER}/${REPO_NAME}:${env.BUILD_NUMBER}"
+                sh "echo $PASS | docker login -u $USER --password-stdin"
+                sh "docker build -t ${env.DEPLOY_TAG} ."
+                sh "docker push ${env.DEPLOY_TAG}"
+            }
+        }
             } 
         }
         stage('Deploy') {
             agent { label 'worker2' }
+            environment {
+                IMAGE_NAME = "${env.DEPLOY_TAG}"
+            }
             steps {
+                checkout scm
                 withCredentials([file(credentialsId: 'ENV_FILE', variable: 'SECRET_FILE_PATH')]) {
                     sh '''
-                        echo "Деплой образа: $IMAGE_NAME"
+                        echo "Deploy image: $IMAGE_NAME"
+                        if [ -z "$IMAGE_NAME" ] || [ "$IMAGE_NAME" = "null" ]; then
+                        echo "ОШИБКА: Имя образа потерялось!"
+                        exit 1
+                        fi
                         docker compose --env-file "$SECRET_FILE_PATH" down --remove-orphans
                         docker compose --env-file "$SECRET_FILE_PATH" up -d
-                        docker compose ps
                     '''
                 }
-                sleep 5
             }
         }
         stage('Integration_tests') {

@@ -82,13 +82,9 @@ pipeline {
     }
     post {
         always {
-            script {
-                node ('worker2'){
-                    echo 'Cleanup: removing local image and containers...'
-                    sh 'docker compose down --remove-orphans -v'
-                    sh 'docker image prune -f'
-                    sh 'docker compose ps || true'
-                }
+            node ('worker2'){
+                sh 'docker compose down --remove-orphans -v'
+                sh 'docker system prune -f'
             }
         }
         success {

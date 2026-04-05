@@ -36,6 +36,12 @@ pipeline {
             agent { label 'worker1' }
             steps {
                 echo 'Running tests...'
+                sh '''
+                    python3 -m venv venv
+                    .venv/bin/activate
+                    pip install -r requirements.txt
+                    pytest tests/ --junitxml=report.xml
+                '''
                 sleep 3
             }
         }

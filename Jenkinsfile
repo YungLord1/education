@@ -25,7 +25,7 @@ pipeline {
         stage('Unit Tests') {
             agent { label 'worker1' }
             steps {
-                echo 'Запуск простых юнитов...'
+                echo 'Start unit tests...'
                 sh '''
                     . venv/bin/activate
                     pip install pytest pytest-asyncio httpx fastapi
@@ -36,11 +36,16 @@ pipeline {
         stage('Build') {
             agent { label 'worker2' }
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub_creds', usernameVariable: 'HUB_USER', passwordVariable: 'HUB_PASS')]) {
+                sh 'docker system prune -a --volumes -f'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub_creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     script {
-                        FULL_IMAGE = '${HUB_USER}/${REPO_NAME}:${env.BUILD_NUMBER}'
-                        echo 'Собираем локальный образ: ${FULL_IMAGE}'
-                        sh 'docker build -t ${FULL_IMAGE} .'
+                        def fullImageName = "${USER}/${REPO_NAME}:${env.BUILD_NUMBER}"
+                        echo "Image: ${fullImageName}"
+                        sh "docker build -t ${fullImageName} ."
+                        echo "Login..."
+                        sh "echo $PASS | docker login -u $USER --password-stdin"
+                        sh "docker push ${fullImageName}"
+                        env.DEPLOY_TAG = fullImageName
                     }
                 }
             } 
@@ -62,7 +67,6 @@ pipeline {
                 withCredentials([file(credentialsId: 'ENV_FILE', variable: 'SECURE_ENV_PATH')]) {
                     script {
                         sh 'cp ${SECURE_ENV_PATH} .env'
-                        // Прокидываем переменную образа в .env
                         sh "echo '\nIMAGE_NAME=${FULL_IMAGE}' >> .env"
                         
                         sh 'docker system prune -a --volumes -f'

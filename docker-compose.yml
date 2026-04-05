@@ -6,8 +6,8 @@ services:
     container_name: currency-app
     user: "1001:1001"
     read_only: true
-    env_file:
-      - .env
+    # env_file:
+    #   - .env
     security_opt:
       - no-new-privileges:true
     cap_drop:

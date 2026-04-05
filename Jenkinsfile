@@ -1,6 +1,6 @@
 #!groovy
 pipeline {
-    agent any
+    agent none
     environment {
         IMAGE = "myapp:${env.BUILD_NUMBER}"
     }
@@ -9,6 +9,7 @@ pipeline {
     }
     stages {
         stage('Lint') {
+            agent { worker1 }
             steps {
                 echo 'Running linter...'
                 withCredentials([string(credentialsId: 'SUDO_PASS', variable: 'SUDO_PASSWORD')]) {
@@ -20,25 +21,31 @@ pipeline {
                 sleep 2
             }
         }
+        stage('Build') {
+            agent { worker2 }
+            steps {
+                sh 'docker system prune -a --volumes -f'
+                sh 'docker-compose up'
+                sh 'docker compose ps'
+                sleep 4
+            }
+        }
         stage('Test') {
+            agent { worker 1 }
             steps {
                 echo 'Running tests...'
                 sleep 3
             }
         }
-        stage('Build') {
-            steps {
-                echo "Building Docker image ${IMAGE}..."
-                sleep 4
-            }
-        }
         stage('Push') {
+            agent { worker2 }
             steps {
                 echo 'Pushing image to regisrty...'
                 sleep 2
             }
         }
         stage('Deploy') {
+            agent { worker2 }
             steps {
                 echo 'Deploying to staging...'
                 sleep 2
@@ -48,6 +55,8 @@ pipeline {
     post {
         always {
             echo 'Cleanup: removing local image...'
+            sh 'docker compose down --remove-orphans -v'
+            sh 'docker compose ps'
             sleep 1
         }
         success {

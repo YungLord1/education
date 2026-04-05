@@ -52,12 +52,12 @@ pipeline {
             agent { label 'worker2' }
             steps {
                 withCredentials([file(credentialsId: 'ENV_FILE', variable: 'SECRET_FILE_PATH')]) {
-                    sh """
+                    sh '''
                         IMAGE_NAME=${env.DEPLOY_TAG} \
                         docker compose --env-file ${SECRET_FILE_PATH} down --remove-orphans
                         IMAGE_NAME=${env.DEPLOY_TAG} \
                         docker compose --env-file ${SECRET_FILE_PATH} up -d
-                    """
+                    '''
                 }
                 sleep 5
             }

@@ -83,7 +83,7 @@ pipeline {
     post {
         always {
             node ('worker2'){
-                sh 'docker compose down --remove-orphans -v'
+                sh 'IMAGE_NAME=cleanup docker compose down --remove-orphans -v'
                 sh 'docker system prune -f'
             }
         }

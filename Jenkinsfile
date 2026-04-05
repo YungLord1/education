@@ -31,17 +31,17 @@ pipeline {
                     }
                 sleep 4
                 } 
-            }
-            post {
-            always {
-                echo 'Cleanup: removing local image...'
-                withCredentials([file(credentialsId: 'ENV_FILE', variable: 'APP_ENV_FILE')]) {
-                    sh 'docker compose down --remove-orphans -v'
-                    sh 'docker compose ps'
-                    sleep 1
+                post {
+                always {
+                    echo 'Cleanup: removing local image...'
+                    withCredentials([file(credentialsId: 'ENV_FILE', variable: 'APP_ENV_FILE')]) {
+                        sh 'docker compose down --remove-orphans -v'
+                        sh 'docker compose ps'
+                        sleep 1
                     }
                 }
             }
+        }
         stage('Test') {
             agent { label 'worker1' }
             steps {

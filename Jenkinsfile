@@ -48,16 +48,6 @@ pipeline {
                 }
             } 
         }
-        stage('Push') {
-            agent { label 'worker2' }
-            steps {
-                echo 'Отправляем ${FULL_IMAGE} в Docker Hub...'
-                withCredentials([usernamePassword(credentialsId: 'dockerhub_creds', usernameVariable: 'HUB_USER', passwordVariable: 'HUB_PASS')]) {
-                    sh 'echo $HUB_PASS | docker login -u $HUB_USER --password-stdin'
-                    sh 'docker push ${FULL_IMAGE}'
-                }
-            }
-        }
         stage('Deploy') {
             agent { label 'worker2' }
             steps {

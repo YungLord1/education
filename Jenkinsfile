@@ -2,7 +2,8 @@
 pipeline {
     agent none
     environment {
-        IMAGE = "myapp:${env.BUILD_NUMBER}"
+        REPO_NAME = "myapp"
+        FULL_IMAGE = ""
     }
     options {
         timestamps()
@@ -21,18 +22,57 @@ pipeline {
                 sleep 2
             }
         }
+        stage('Unit Tests') {
+            agent { label 'worker1' }
+            steps {
+                echo 'Запуск простых юнитов...'
+                sh '''
+                    . venv/bin/activate
+                    pip install pytest pytest-asyncio httpx fastapi
+                    pytest test_unit.py --junitxml=unit_report.xml
+                '''
+            }
+        }
         stage('Build') {
             agent { label 'worker2' }
             steps {
-                withCredentials([file(credentialsId: 'ENV_FILE', variable: 'APP_ENV_FILE')]) {
-                    sh 'docker system prune -a --volumes -f'
-                    sh 'docker compose up -d'
-                    sh 'docker compose ps'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub_creds', usernameVariable: 'HUB_USER', passwordVariable: 'HUB_PASS')]) {
+                    script {
+                        FULL_IMAGE = '${HUB_USER}/${REPO_NAME}:${env.BUILD_NUMBER}'
+                        echo 'Собираем локальный образ: ${FULL_IMAGE}'
+                        sh 'docker build -t ${FULL_IMAGE} .'
                     }
-                sleep 4
+                }
             } 
         }
-        stage('Test') {
+        stage('Push') {
+            agent { label 'worker2' }
+            steps {
+                echo 'Отправляем ${FULL_IMAGE} в Docker Hub...'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub_creds', usernameVariable: 'HUB_USER', passwordVariable: 'HUB_PASS')]) {
+                    sh 'echo $HUB_PASS | docker login -u $HUB_USER --password-stdin'
+                    sh 'docker push ${FULL_IMAGE}'
+                }
+            }
+        }
+        stage('Deploy') {
+            agent { label 'worker2' }
+            steps {
+                echo 'Деплоим на стейджинг через Docker Compose...'
+                withCredentials([file(credentialsId: 'ENV_FILE', variable: 'SECURE_ENV_PATH')]) {
+                    script {
+                        sh 'cp ${SECURE_ENV_PATH} .env'
+                        // Прокидываем переменную образа в .env
+                        sh "echo '\nIMAGE_NAME=${FULL_IMAGE}' >> .env"
+                        
+                        sh 'docker system prune -a --volumes -f'
+                        sh 'docker compose up -d'
+                        sh 'docker compose ps'
+                    }
+                }
+            }
+        }
+        stage('Integration_tests') {
             agent { label 'worker1' }
             steps {
                 echo 'Running tests...'
@@ -40,23 +80,9 @@ pipeline {
                     python3 -m venv venv
                     . venv/bin/activate
                     pip install -r requirements.txt
-                    pytest --junitxml=report.xml
+                    pytest test_currency_app.py --junitxml=integration_report.xml
                 '''
                 sleep 3
-            }
-        }
-        stage('Push') {
-            agent { label 'worker2' }
-            steps {
-                echo 'Pushing image to regisrty...'
-                sleep 2
-            }
-        }
-        stage('Deploy') {
-            agent { label 'worker2' }
-            steps {
-                echo 'Deploying to staging...'
-                sleep 2
             }
         }
     }

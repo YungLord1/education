@@ -2,7 +2,7 @@
 pipeline {
     agent none
     environment {
-        REPO_NAME = "myapp"
+        REPO_NAME = "ImageForPipe"
         FULL_IMAGE = ""
     }
     options {
@@ -51,17 +51,15 @@ pipeline {
         stage('Deploy') {
             agent { label 'worker2' }
             steps {
-                echo 'Деплоим на стейджинг через Docker Compose...'
-                withCredentials([file(credentialsId: 'ENV_FILE', variable: 'SECURE_ENV_PATH')]) {
-                    script {
-                        sh 'cp ${SECURE_ENV_PATH} .env'
-                        sh "echo '\nIMAGE_NAME=${FULL_IMAGE}' >> .env"
-                        
-                        sh 'docker system prune -a --volumes -f'
-                        sh 'docker compose up -d'
-                        sh 'docker compose ps'
-                    }
+                withCredentials([file(credentialsId: 'ENV_FILE', variable: 'SECRET_FILE_PATH')]) {
+                    sh """
+                        IMAGE_NAME=${env.DEPLOY_TAG} \
+                        docker compose --env-file ${SECRET_FILE_PATH} down --remove-orphans
+                        IMAGE_NAME=${env.DEPLOY_TAG} \
+                        docker compose --env-file ${SECRET_FILE_PATH} up -d
+                    """
                 }
+                sleep 5
             }
         }
         stage('Integration_tests') {

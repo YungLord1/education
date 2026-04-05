@@ -4,6 +4,7 @@ pipeline {
     environment {
         REPO_NAME = "imageforpipe"
         FULL_IMAGE = ""
+        IMAGE_NAME = "${env.DEPLOY_TAG}"
     }
     options {
         timestamps()
@@ -53,10 +54,10 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'ENV_FILE', variable: 'SECRET_FILE_PATH')]) {
                     sh '''
-                        IMAGE_NAME=${env.DEPLOY_TAG} \
-                        docker compose --env-file ${SECRET_FILE_PATH} down --remove-orphans
-                        IMAGE_NAME=${env.DEPLOY_TAG} \
-                        docker compose --env-file ${SECRET_FILE_PATH} up -d
+                        echo "Деплой образа: $IMAGE_NAME"
+                        docker compose --env-file "$SECRET_FILE_PATH" down --remove-orphans
+                        docker compose --env-file "$SECRET_FILE_PATH" up -d
+                        docker compose ps
                     '''
                 }
                 sleep 5

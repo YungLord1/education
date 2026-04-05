@@ -6,6 +6,7 @@ pipeline {
     }
     options {
         timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '5'))
     }
     stages {
         stage('Lint') {
@@ -86,6 +87,7 @@ pipeline {
                     echo 'Cleanup: removing local image...'
                     withCredentials([file(credentialsId: 'ENV_FILE', variable: 'APP_ENV_FILE')]) {
                         sh 'docker compose down --remove-orphans -v'
+                        sh 'docker system prune -a --volumes -f'
                         sh 'docker compose ps'
                         sleep 1
                     }

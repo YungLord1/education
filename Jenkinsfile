@@ -3,8 +3,6 @@ pipeline {
     agent none
     environment {
         REPO_NAME = "imageforpipe"
-        FULL_IMAGE = ""
-        IMAGE_NAME = "${env.DEPLOY_TAG}"
     }
     options {
         timestamps()
@@ -38,13 +36,13 @@ pipeline {
             agent { label 'worker2' }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub_creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-            script {
-                env.DEPLOY_TAG = "${USER}/${REPO_NAME}:${env.BUILD_NUMBER}"
-                sh "echo $PASS | docker login -u $USER --password-stdin"
-                sh "docker build -t ${env.DEPLOY_TAG} ."
-                sh "docker push ${env.DEPLOY_TAG}"
-            }
-        }
+                    script {
+                        env.DEPLOY_TAG = "${USER}/${REPO_NAME}:${env.BUILD_NUMBER}"
+                        sh "echo $PASS | docker login -u $USER --password-stdin"
+                        sh "docker build -t ${env.DEPLOY_TAG} ."
+                        sh "docker push ${env.DEPLOY_TAG}"
+                    }
+                }
             } 
         }
         stage('Deploy') {

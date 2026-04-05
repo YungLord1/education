@@ -55,14 +55,12 @@ pipeline {
         }
     }
     post {
-        post {
-                always {
-                    echo 'Cleanup: removing local image...'
-                    withCredentials([file(credentialsId: 'ENV_FILE', variable: 'APP_ENV_FILE')]) {
-                        sh 'docker compose down --remove-orphans -v'
-                        sh 'docker compose ps'
-                        sleep 1
-                }
+        always {
+            echo 'Cleanup: removing local image...'
+            withCredentials([file(credentialsId: 'ENV_FILE', variable: 'APP_ENV_FILE')]) {
+                sh 'docker compose down --remove-orphans -v'
+                sh 'docker compose ps'
+                sleep 1
             }
         }
         success {

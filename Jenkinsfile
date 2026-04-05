@@ -36,16 +36,14 @@ pipeline {
         stage('Build') {
             agent { label 'worker2' }
             steps {
-                sh 'docker system prune -a --volumes -f'
                 withCredentials([usernamePassword(credentialsId: 'dockerhub_creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     script {
-                        def fullImageName = "${USER}/${REPO_NAME}:${env.BUILD_NUMBER}"
-                        echo "Image: ${fullImageName}"
-                        sh "docker build -t ${fullImageName} ."
-                        echo "Login..."
+                        def tag = "${USER}/${REPO_NAME}:${env.BUILD_NUMBER}"
                         sh "echo $PASS | docker login -u $USER --password-stdin"
-                        sh "docker push ${fullImageName}"
-                        env.DEPLOY_TAG = fullImageName
+                        sh 'docker system prune -f'
+                        sh "docker build -t ${tag} ."
+                        sh "docker push ${tag}"
+                        env.DEPLOY_TAG = tag
                     }
                 }
             } 

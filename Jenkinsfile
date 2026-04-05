@@ -26,21 +26,11 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'ENV_FILE', variable: 'APP_ENV_FILE')]) {
                     sh 'docker system prune -a --volumes -f'
-                    sh 'docker compose up'
+                    sh 'docker compose up -d'
                     sh 'docker compose ps'
                     }
                 sleep 4
-                } 
-                post {
-                always {
-                    echo 'Cleanup: removing local image...'
-                    withCredentials([file(credentialsId: 'ENV_FILE', variable: 'APP_ENV_FILE')]) {
-                        sh 'docker compose down --remove-orphans -v'
-                        sh 'docker compose ps'
-                        sleep 1
-                    }
-                }
-            }
+            } 
         }
         stage('Test') {
             agent { label 'worker1' }
@@ -65,6 +55,16 @@ pipeline {
         }
     }
     post {
+        post {
+                always {
+                    echo 'Cleanup: removing local image...'
+                    withCredentials([file(credentialsId: 'ENV_FILE', variable: 'APP_ENV_FILE')]) {
+                        sh 'docker compose down --remove-orphans -v'
+                        sh 'docker compose ps'
+                        sleep 1
+                }
+            }
+        }
         success {
             echo 'Pipeline finished successfully, build by commit'
         }

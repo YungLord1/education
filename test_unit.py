@@ -37,6 +37,7 @@ async def test_cbr_xml_parsing():
         assert rate.value == 68.2892
         assert isinstance(rate.value, float)
 
+
 @pytest.mark.asyncio
 async def test_cbr_error_handling():
     repo = CbrRepository("http://www.cbr.ru/scripts/XML_daily.asp")

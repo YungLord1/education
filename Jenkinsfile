@@ -2,7 +2,7 @@
 pipeline {
     agent none
     environment {
-        REPO_NAME = "ImageForPipe"
+        REPO_NAME = "imageforpipe"
         FULL_IMAGE = ""
     }
     options {

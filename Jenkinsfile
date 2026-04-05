@@ -9,7 +9,7 @@ pipeline {
     }
     stages {
         stage('Lint') {
-            agent { worker1 }
+            agent { label 'worker1' }
             steps {
                 echo 'Running linter...'
                 withCredentials([string(credentialsId: 'SUDO_PASS', variable: 'SUDO_PASSWORD')]) {
@@ -22,30 +22,38 @@ pipeline {
             }
         }
         stage('Build') {
-            agent { worker2 }
+            agent { label 'worker2' }
             steps {
                 sh 'docker system prune -a --volumes -f'
                 sh 'docker-compose up'
                 sh 'docker compose ps'
                 sleep 4
             }
+            post {
+            always {
+                echo 'Cleanup: removing local image...'
+                sh 'docker compose down --remove-orphans -v'
+                sh 'docker compose ps'
+                sleep 1
+                }
+            }
         }
         stage('Test') {
-            agent { worker 1 }
+            agent { label 'worker1' }
             steps {
                 echo 'Running tests...'
                 sleep 3
             }
         }
         stage('Push') {
-            agent { worker2 }
+            agent { label 'worker2' }
             steps {
                 echo 'Pushing image to regisrty...'
                 sleep 2
             }
         }
         stage('Deploy') {
-            agent { worker2 }
+            agent { label 'worker2' }
             steps {
                 echo 'Deploying to staging...'
                 sleep 2
@@ -53,12 +61,6 @@ pipeline {
         }
     }
     post {
-        always {
-            echo 'Cleanup: removing local image...'
-            sh 'docker compose down --remove-orphans -v'
-            sh 'docker compose ps'
-            sleep 1
-        }
         success {
             echo 'Pipeline finished successfully, build by commit'
         }

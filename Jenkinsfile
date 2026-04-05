@@ -25,7 +25,7 @@ pipeline {
             agent { label 'worker2' }
             steps {
                 sh 'docker system prune -a --volumes -f'
-                sh 'docker-compose up'
+                sh 'docker compose up'
                 sh 'docker compose ps'
                 sleep 4
             }

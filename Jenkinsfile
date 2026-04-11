@@ -7,6 +7,10 @@ pipeline {
     options {
         timestamps()
         buildDiscarder(logRotator(numToKeepStr: '5'))
+        gitLabConnection('gitlab-server')
+    }
+    triggers {
+        gitlab(triggerOnPush: true, triggerOnMergeRequest: true, branchFilterType: 'All')
     }
     stages {
         stage('Lint') {
@@ -27,8 +31,9 @@ pipeline {
             steps {
                 echo 'Start unit tests...'
                 sh '''
+                    python3 -m venv venv
                     . venv/bin/activate
-                    pip install pytest pytest-asyncio httpx fastapi
+                    pip install -r requirements.txt
                     pytest test_unit.py --junitxml=unit_report.xml
                 '''
             }
@@ -48,6 +53,17 @@ pipeline {
         }
         stage('Deploy') {
             agent { label 'worker2' }
+            when {
+                branch 'master'
+                beforeInput true
+            }
+            options {
+                timeout(time: 48, unit: 'HOURS')
+            }
+            input{
+                message 'Do u want to deploy?'
+                ok 'Deploy now'
+            }
             environment {
                 IMAGE_NAME = "${env.DEPLOY_TAG}"
             }
@@ -56,10 +72,6 @@ pipeline {
                 withCredentials([file(credentialsId: 'ENV_FILE', variable: 'SECRET_FILE_PATH')]) {
                     sh '''
                         echo "Deploy image: $IMAGE_NAME"
-                        if [ -z "$IMAGE_NAME" ] || [ "$IMAGE_NAME" = "null" ]; then
-                        echo "ОШИБКА: Имя образа потерялось!"
-                        exit 1
-                        fi
                         docker compose --env-file "$SECRET_FILE_PATH" down --remove-orphans
                         docker compose --env-file "$SECRET_FILE_PATH" up -d
                     '''
@@ -68,6 +80,9 @@ pipeline {
         }
         stage('Integration_tests') {
             agent { label 'worker1' }
+            when {
+                branch 'master'
+            }
             steps {
                 echo 'Running tests...'
                 sh '''
@@ -76,7 +91,6 @@ pipeline {
                     pip install -r requirements.txt
                     pytest test_currency_app.py --junitxml=integration_report.xml
                 '''
-                sleep 3
             }
         }
     }
@@ -88,9 +102,11 @@ pipeline {
             }
         }
         success {
+            updateGitlabCommitStatus(name: 'jenkins', state: 'success')
             echo 'Pipeline finished successfully'
         }
         failure {
+            updateGitlabCommitStatus(name: 'jenkins', state: 'failed')
             echo 'Pipeline failed'
         }
     }
